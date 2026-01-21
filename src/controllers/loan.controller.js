@@ -264,10 +264,15 @@ const getAllLoans = async (req, res) => {
     `;
 
     // Create NEW array, don't reuse params
-const dataParams = params.slice(); // Copy params array
-dataParams.push(parseInt(limit));
-dataParams.push(parseInt(offset));
-const loans = await query(dataSql, dataParams);
+// Use string interpolation for LIMIT/OFFSET (safe with parseInt)
+const safeLimit = parseInt(limit);
+const safeOffset = parseInt(offset);
+
+// Remove LIMIT ? OFFSET ? from dataSql and add this at the end:
+const finalSql = dataSql.replace('LIMIT ? OFFSET ?', `LIMIT ${safeLimit} OFFSET ${safeOffset}`);
+
+// Don't add limit/offset to params
+const borrowers = await query(finalSql, params);
 
     return ApiResponse.paginated(
       res,

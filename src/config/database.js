@@ -22,10 +22,20 @@ const testConnection = async () => {
  */
 const query = async (sql, params = []) => {
   try {
-    const [rows] = await promisePool.execute(sql, params);
+    // Clean up params - ensure proper types
+    const cleanParams = params.map(p => {
+      if (p === undefined || p === null) return null;
+      if (typeof p === 'string' && p.match(/^\d+$/)) return parseInt(p);
+      return p;
+    });
+    
+    const [rows] = await promisePool.execute(sql, cleanParams);
     return rows;
   } catch (error) {
-    console.error('Query Error:', error);
+    console.error('❌ Query Error:', error.message);
+    console.error('📄 SQL:', sql);
+    console.error('📊 Params:', cleanParams);
+    console.error('📊 Original Params:', params);
     throw error;
   }
 };
