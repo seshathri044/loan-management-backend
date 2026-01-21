@@ -309,8 +309,11 @@ const getAllCollections = async (req, res) => {
       LIMIT ? OFFSET ?
     `;
 
-    const dataParams = [...params, parseInt(limit), parseInt(offset)];
-    const collections = await query(dataSql, dataParams);
+    // Create NEW array, don't reuse params
+const dataParams = params.slice(); // Copy params array
+dataParams.push(parseInt(limit));
+dataParams.push(parseInt(offset));
+const collections = await query(dataSql, dataParams);
 
     return ApiResponse.paginated(
       res,
