@@ -195,51 +195,60 @@ const getAllLoans = async (req, res) => {
 
     const offset = (parseInt(page) - 1) * parseInt(limit);
 
-    // Build base query
-    let baseSql = `
-      FROM loans l
-      JOIN borrowers b ON l.borrower_id = b.id
-      WHERE l.admin_id = ?
-    `;
-    const baseParams = [adminId];
+    // Validate and sanitize sort column
+    const validSortColumns = {
+      'loan_number': 'l.loan_number',
+      'created_at': 'l.created_at',
+      'total_amount': 'l.total_amount',
+      'pending_amount': 'l.pending_amount',
+      'start_date': 'l.start_date'
+    };
+    const sortColumn = validSortColumns[sort_by] || 'l.created_at';
+    const sortDir = sort_order.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
 
-    // Apply filters
+    // Build WHERE conditions
+    let whereConditions = ['l.admin_id = ?'];
+    const params = [adminId];
+
     if (status) {
-      baseSql += ' AND l.status = ?';
-      baseParams.push(status);
+      whereConditions.push('l.status = ?');
+      params.push(status);
     }
 
     if (borrower_id) {
-      baseSql += ' AND l.borrower_id = ?';
-      baseParams.push(borrower_id);
+      whereConditions.push('l.borrower_id = ?');
+      params.push(borrower_id);
     }
 
     if (search) {
-      baseSql += ' AND (l.loan_number LIKE ? OR b.name LIKE ? OR b.mobile LIKE ?)';
+      whereConditions.push('(l.loan_number LIKE ? OR b.name LIKE ? OR b.mobile LIKE ?)');
       const searchTerm = `%${search}%`;
-      baseParams.push(searchTerm, searchTerm, searchTerm);
+      params.push(searchTerm, searchTerm, searchTerm);
     }
 
     if (from_date) {
-      baseSql += ' AND DATE(l.created_at) >= ?';
-      baseParams.push(from_date);
+      whereConditions.push('DATE(l.created_at) >= ?');
+      params.push(from_date);
     }
 
     if (to_date) {
-      baseSql += ' AND DATE(l.created_at) <= ?';
-      baseParams.push(to_date);
+      whereConditions.push('DATE(l.created_at) <= ?');
+      params.push(to_date);
     }
 
+    const whereClause = whereConditions.join(' AND ');
+
     // Get total count
-    const countSql = `SELECT COUNT(*) as total ${baseSql}`;
-    const countResult = await query(countSql, baseParams);
+    const countSql = `
+      SELECT COUNT(*) as total
+      FROM loans l
+      JOIN borrowers b ON l.borrower_id = b.id
+      WHERE ${whereClause}
+    `;
+    const countResult = await query(countSql, params);
     const total = countResult[0]?.total || 0;
 
-    // Build data query
-    const validSortColumns = ['loan_number', 'created_at', 'total_amount', 'pending_amount', 'start_date'];
-    const sortColumn = validSortColumns.includes(sort_by) ? sort_by : 'created_at';
-    const sortDir = sort_order.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
-
+    // Get data
     const dataSql = `
       SELECT 
         l.*,
@@ -247,13 +256,16 @@ const getAllLoans = async (req, res) => {
         b.mobile as borrower_mobile,
         b.business_name,
         (l.paid_amount / l.total_amount * 100) as payment_percentage
-      ${baseSql}
-      ORDER BY l.${sortColumn} ${sortDir}
+      FROM loans l
+      JOIN borrowers b ON l.borrower_id = b.id
+      WHERE ${whereClause}
+      ORDER BY ${sortColumn} ${sortDir}
       LIMIT ? OFFSET ?
     `;
 
-    // Create new params array for data query
-    const loans = await query(dataSql, [...baseParams, parseInt(limit), parseInt(offset)]);
+    const dataParams = [...params, parseInt(limit), parseInt(offset)];
+    const loans = await query(dataSql, dataParams);
+
     return ApiResponse.paginated(
       res,
       loans,

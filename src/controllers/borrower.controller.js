@@ -104,38 +104,43 @@ const getAllBorrowers = async (req, res) => {
 
     const offset = (parseInt(page) - 1) * parseInt(limit);
 
-    // Build base query
-    let baseSql = `
-      FROM borrowers b
-      LEFT JOIN loans l ON b.id = l.borrower_id
-      WHERE b.admin_id = ?
-    `;
-    const baseParams = [adminId];
+    // Validate and sanitize sort column
+    const validSortColumns = {
+      'name': 'b.name',
+      'mobile': 'b.mobile',
+      'created_at': 'b.created_at',
+      'status': 'b.status'
+    };
+    const sortColumn = validSortColumns[sort_by] || 'b.created_at';
+    const sortDir = sort_order.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
 
-    // Apply filters
+    // Build WHERE conditions
+    let whereConditions = ['b.admin_id = ?'];
+    const params = [adminId];
+
     if (search) {
-      baseSql += ' AND (b.name LIKE ? OR b.mobile LIKE ? OR b.business_name LIKE ?)';
+      whereConditions.push('(b.name LIKE ? OR b.mobile LIKE ? OR b.business_name LIKE ?)');
       const searchTerm = `%${search}%`;
-      baseParams.push(searchTerm, searchTerm, searchTerm);
+      params.push(searchTerm, searchTerm, searchTerm);
     }
 
     if (status) {
-      baseSql += ' AND b.status = ?';
-      baseParams.push(status);
+      whereConditions.push('b.status = ?');
+      params.push(status);
     }
 
-    baseSql += ' GROUP BY b.id';
+    const whereClause = whereConditions.join(' AND ');
 
     // Get total count
-    const countSql = `SELECT COUNT(*) as total FROM (SELECT b.id ${baseSql}) as temp`;
-    const countResult = await query(countSql, baseParams);
+    const countSql = `
+      SELECT COUNT(DISTINCT b.id) as total
+      FROM borrowers b
+      WHERE ${whereClause}
+    `;
+    const countResult = await query(countSql, params);
     const total = countResult[0]?.total || 0;
 
-    // Build data query
-    const validSortColumns = ['name', 'mobile', 'created_at', 'status'];
-    const sortColumn = validSortColumns.includes(sort_by) ? sort_by : 'created_at';
-    const sortDir = sort_order.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
-
+    // Get data with dynamic ORDER BY (safe - using whitelisted columns)
     const dataSql = `
       SELECT 
         b.id, b.name, b.mobile, b.email, b.gender, b.age, 
@@ -144,13 +149,16 @@ const getAllBorrowers = async (req, res) => {
         COUNT(DISTINCT l.id) as total_loans,
         SUM(CASE WHEN l.status = 'active' THEN 1 ELSE 0 END) as active_loans,
         SUM(CASE WHEN l.status = 'active' THEN l.pending_amount ELSE 0 END) as total_pending
-      ${baseSql}
-      ORDER BY b.${sortColumn} ${sortDir}
+      FROM borrowers b
+      LEFT JOIN loans l ON b.id = l.borrower_id
+      WHERE ${whereClause}
+      GROUP BY b.id
+      ORDER BY ${sortColumn} ${sortDir}
       LIMIT ? OFFSET ?
     `;
 
-    // Create new params array for data query
-const borrowers = await query(dataSql, [...baseParams, parseInt(limit), parseInt(offset)]);    
+    const dataParams = [...params, parseInt(limit), parseInt(offset)];
+    const borrowers = await query(dataSql, dataParams);
 
     return ApiResponse.paginated(
       res,
