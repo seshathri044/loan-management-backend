@@ -17,8 +17,42 @@ const testConnection = async () => {
   }
 };
 
+/**
+ * ✅ ADDED: Query helper function
+ */
+const query = async (sql, params = []) => {
+  try {
+    const [rows] = await promisePool.execute(sql, params);
+    return rows;
+  } catch (error) {
+    console.error('Query Error:', error);
+    throw error;
+  }
+};
+
+/**
+ * ✅ ADDED: Transaction helper function
+ */
+const transaction = async (callback) => {
+  const connection = await promisePool.getConnection();
+  
+  try {
+    await connection.beginTransaction();
+    const result = await callback(connection);
+    await connection.commit();
+    return result;
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
+  }
+};
+
 module.exports = {
   pool,
   promisePool,
   testConnection,
+  query,        // ✅ NOW EXPORTED
+  transaction,  // ✅ NOW EXPORTED
 };
