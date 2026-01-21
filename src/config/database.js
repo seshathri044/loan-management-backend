@@ -1,27 +1,12 @@
-const mysql = require('mysql2');
+const mysql = require('mysql2/promise');
 require('dotenv').config();
 
-// Create connection pool for better performance
-const pool = mysql.createPool({
-  host: process.env.DB_HOST || 'localhost',
-  port: process.env.DB_PORT || 3306,
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'loan_management_db',
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
-  enableKeepAlive: true,
-  keepAliveInitialDelay: 0
-});
-
-// Promisify for async/await
-const promisePool = pool.promise();
+const pool = mysql.createPool(process.env.DATABASE_URL);
 
 // Test database connection
 const testConnection = async () => {
   try {
-    const connection = await promisePool.getConnection();
+    const connection = await pool.getConnection();
     console.log('✅ Database connected successfully');
     connection.release();
     return true;
@@ -33,35 +18,28 @@ const testConnection = async () => {
 
 // Execute query helper
 const query = async (sql, params = []) => {
-  try {
-    const [rows] = await promisePool.query(sql, params);
-    return rows;
-  } catch (error) {
-    console.error('Query Error:', error.message);
-    throw error;
-  }
+  const [rows] = await pool.query(sql, params);
+  return rows;
 };
 
 // Transaction helper
 const transaction = async (callback) => {
-  const connection = await promisePool.getConnection();
-  await connection.beginTransaction();
-  
+  const connection = await pool.getConnection();
   try {
+    await connection.beginTransaction();
     const result = await callback(connection);
     await connection.commit();
-    connection.release();
     return result;
   } catch (error) {
     await connection.rollback();
-    connection.release();
     throw error;
+  } finally {
+    connection.release();
   }
 };
 
 module.exports = {
   pool,
-  promisePool,
   testConnection,
   query,
   transaction
