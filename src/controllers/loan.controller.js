@@ -253,8 +253,7 @@ const getAllLoans = async (req, res) => {
     `;
 
     // Create new params array for data query
-    const loans = await query(dataSql, [...baseParams, parseInt(limit), offset]);
-
+    const loans = await query(dataSql, [...baseParams, parseInt(limit), parseInt(offset)]);
     return ApiResponse.paginated(
       res,
       loans,

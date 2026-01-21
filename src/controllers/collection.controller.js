@@ -300,8 +300,7 @@ const getAllCollections = async (req, res) => {
     `;
 
     // Create new params array for data query
-    const collections = await query(dataSql, [...baseParams, parseInt(limit), offset]);
-
+    const collections = await query(dataSql, [...baseParams, parseInt(limit), parseInt(offset)]);
     return ApiResponse.paginated(
       res,
       collections,

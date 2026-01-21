@@ -150,8 +150,7 @@ const getAllBorrowers = async (req, res) => {
     `;
 
     // Create new params array for data query
-    const borrowers = await query(dataSql, [...baseParams, parseInt(limit), offset]);
-    
+const borrowers = await query(dataSql, [...baseParams, parseInt(limit), parseInt(offset)]);    
 
     return ApiResponse.paginated(
       res,
