@@ -271,12 +271,11 @@ const safeOffset = parseInt(offset);
 // Remove LIMIT ? OFFSET ? from dataSql and add this at the end:
 const finalSql = dataSql.replace('LIMIT ? OFFSET ?', `LIMIT ${safeLimit} OFFSET ${safeOffset}`);
 
-// Don't add limit/offset to params
-const borrowers = await query(finalSql, params);
+const borrowers = await query(finalSql, params); // ❌ WRONG VARIABLE NAME
 
-    return ApiResponse.paginated(
-      res,
-      loans,
+return ApiResponse.paginated(
+  res,
+  collections, // ❌ Line 324 - 'collections' is not defined!
       {
         page: parseInt(page),
         limit: parseInt(limit),
