@@ -29,10 +29,10 @@ const registerValidation = [
     .notEmpty().withMessage('Name is required')
     .isLength({ min: 2, max: 100 }).withMessage('Name must be between 2-100 characters'),
   
-  body('mobile')
-    .trim()
-    .notEmpty().withMessage('Mobile number is required')
-    .matches(/^[+]?[0-9]{10,15}$/).withMessage('Invalid mobile number format'),
+  // body('mobile')
+  //   .trim()
+  //   .notEmpty().withMessage('Mobile number is required')
+  //   .matches(/^{10,15}$/).withMessage('Invalid mobile number format'),
   
   body('password')
     .notEmpty().withMessage('Password is required')
@@ -60,10 +60,10 @@ const registerValidation = [
  * Login Validation Rules
  */
 const loginValidation = [
-  body('mobile')
-    .trim()
-    .notEmpty().withMessage('Mobile number is required')
-    .matches(/^[+]?[0-9]{10,15}$/).withMessage('Invalid mobile number format'),
+  // body('mobile')
+  //   .trim()
+  //   .notEmpty().withMessage('Mobile number is required')
+  //   .matches(/^[+]?[0-9]{10,15}$/).withMessage('Invalid mobile number format'),
   
   body('password')
     .notEmpty().withMessage('Password is required'),
