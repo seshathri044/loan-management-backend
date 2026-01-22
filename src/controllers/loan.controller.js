@@ -265,17 +265,18 @@ const getAllLoans = async (req, res) => {
 
     // Create NEW array, don't reuse params
 // Use string interpolation for LIMIT/OFFSET (safe with parseInt)
-const safeLimit = parseInt(limit);
-const safeOffset = parseInt(offset);
+// Use string interpolation for LIMIT/OFFSET (safe with parseInt)
+    const safeLimit = parseInt(limit);
+    const safeOffset = parseInt(offset);
 
-// Remove LIMIT ? OFFSET ? from dataSql and add this at the end:
-const finalSql = dataSql.replace('LIMIT ? OFFSET ?', `LIMIT ${safeLimit} OFFSET ${safeOffset}`);
+    // Remove LIMIT ? OFFSET ? from dataSql and add this at the end:
+    const finalSql = dataSql.replace('LIMIT ? OFFSET ?', `LIMIT ${safeLimit} OFFSET ${safeOffset}`);
 
-const borrowers = await query(finalSql, params); // ❌ WRONG VARIABLE NAME
+    const loans = await query(finalSql, params); // ✅ CORRECT: Changed to 'loans'
 
-return ApiResponse.paginated(
-  res,
-  collections, // ❌ Line 324 - 'collections' is not defined!
+    return ApiResponse.paginated(
+      res,
+      loans, // ✅ CORRECT: Changed to 'loans'
       {
         page: parseInt(page),
         limit: parseInt(limit),
