@@ -26,7 +26,7 @@ Admin-only loan management system for microfinance businesses to manage borrower
 ### Backend
 - **Runtime**: Node.js
 - **Database**: MySQL
-- **Hosting**: Render (Free tier)
+- **Backend Hosting**: Render (Free tier)
 - **Database Hosting**: Railway
 
 ### Frontend
