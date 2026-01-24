@@ -1,159 +1,238 @@
-# Loan Management System
+# Loan Management System - Backend API
 
-A comprehensive microfinance/lending management application built with Node.js backend and Flutter frontend.
+![API Status](https://img.shields.io/website?url=https://loan-management-backend-h2d1.onrender.com)
+![Node.js](https://img.shields.io/badge/Node.js-v18-green)
+![MySQL](https://img.shields.io/badge/MySQL-8.0-blue)
+![License](https://img.shields.io/badge/License-Proprietary-red)
 
-## Live Deployment
+A comprehensive RESTful API for microfinance/lending management built with Node.js and MySQL.
 
-- **Backend API**: https://loan-management-backend-h2d1.onrender.com
-- **Status**: Deployed and operational
-- **Platform Compatibility**: Android & iOS tested
+## 🚀 Live Demo
+**API Endpoint**: https://loan-management-backend-h2d1.onrender.com
 
-## Application Overview
+> **Note**: Demo deployment uses free-tier hosting. Production deployment will be handled by the client with proper infrastructure.
 
-Admin-only loan management system for microfinance businesses to manage borrowers, track loans, and collect payments.
+## 📋 Overview
+Enterprise-grade loan management system backend designed for microfinance institutions. Handles borrower management, loan processing, EMI calculations, payment tracking, and analytics.
 
-### Core Features
-- Admin authentication and profile management
-- Borrower registration and management
-- Loan creation with EMI calculation
-- Payment collection tracking
-- Dashboard analytics (Daily/Weekly/Monthly)
-- SMS notifications for payment reminders
-- Installment schedule generation
+### Key Capabilities
+- Secure JWT-based authentication with refresh tokens
+- Automated EMI calculation and installment scheduling
+- Role-based access control (Admin/Super Admin)
+- RESTful API architecture
+- Payment collection and late fee management
+- Real-time dashboard analytics
+- SMS notification integration
 
-## Tech Stack
-
-### Backend
-- **Runtime**: Node.js
+## 🛠️ Tech Stack
+- **Runtime**: Node.js + Express.js
 - **Database**: MySQL
-- **Backend Hosting**: Render (Free tier)
-- **Database Hosting**: Railway
+- **Authentication**: JWT (jsonwebtoken)
+- **Security**: bcrypt password hashing, helmet, cors
+- **Validation**: express-validator
+- **Environment**: dotenv
 
-### Frontend
-- **Framework**: Flutter
-- **Build**: APK (production-ready)
-
-## Project Structure
-
-### Backend
+## 📁 Project Structure
 ```
 backend/
 ├── config/          # Database and app configuration
 ├── controllers/     # Business logic handlers
 ├── middleware/      # Authentication & validation
-├── routes/          # API endpoints
-├── utils/           # Helper functions (JWT, SMS, calculations)
-└── .env            # Environment variables
+├── routes/          # API route definitions
+├── utils/           # Helper functions (JWT, calculations)
+├── server.js        # Application entry point
+└── package.json     # Dependencies
 ```
 
-### Frontend
-```
-frontend/
-├── lib/
-│   ├── providers/   # State management
-│   ├── screens/     # UI screens
-│   ├── services/    # API integration
-│   └── utils/       # Theme and helpers
-└── .env            # API configuration
-```
+## 🔧 Environment Setup
 
-## Environment Configuration
-
-### Backend (.env)
-```
-NODE_ENV=development
+### Required Environment Variables
+```bash
+NODE_ENV=production
 PORT=5000
 API_VERSION=v1
-DATABASE_URL=mysql://user:pass@host:port/db_name
-JWT_SECRET=your_jwt_secret
-JWT_REFRESH_SECRET=your_refresh_secret
+
+# Database Configuration
+DATABASE_URL=mysql://user:password@host:port/database
+
+# JWT Configuration
+JWT_SECRET=your_secret_key_here
+JWT_REFRESH_SECRET=your_refresh_secret_here
 JWT_EXPIRES_IN=24h
 JWT_REFRESH_EXPIRES_IN=7d
+
+# Security
 BCRYPT_ROUNDS=10
-CORS_ORIGIN=*
+CORS_ORIGIN=https://yourdomain.com
 ```
 
-### Frontend (.env)
+> ⚠️ **Security Note**: Never commit `.env` files. Use environment variable management in production.
+
+## 🚦 Installation & Setup
+
+### Prerequisites
+- Node.js (v14 or higher)
+- MySQL (v8.0 or higher)
+- npm or yarn
+
+### Local Development
+```bash
+# Clone the repository
+git clone https://github.com/seshathri044/loan-management-backend.git
+cd loan-management-backend
+
+# Install dependencies
+npm install
+
+# Configure environment
+cp .env.example .env
+# Edit .env with your configuration
+
+# Run database migrations (if applicable)
+npm run migrate
+
+# Start development server
+npm run dev
 ```
-API_BASE_URL=https://loan-management-backend-h2d1.onrender.com/api/v1
-API_TIMEOUT=30000
+
+## 📡 API Documentation
+
+### Authentication Endpoints
 ```
-
-## Authentication Flow
-
-- JWT-based authentication
-- Access token (24h) + Refresh token (7d)
-- Password hashing with bcrypt
-- Role-based access control (Admin/Super Admin)
-
-## Key Modules
-
-### Authentication
-- Admin registration and login
-- Profile management
-- Password change
-- Token refresh mechanism
+POST   /api/v1/auth/register     - Admin registration
+POST   /api/v1/auth/login        - Admin login
+POST   /api/v1/auth/refresh      - Refresh access token
+PUT    /api/v1/auth/profile      - Update profile
+PUT    /api/v1/auth/password     - Change password
+```
 
 ### Borrower Management
-- Add/Edit/Delete borrowers
-- Contact and guarantor details
-- Document upload support
-- SMS notification preferences
+```
+GET    /api/v1/borrowers         - List all borrowers
+POST   /api/v1/borrowers         - Create borrower
+GET    /api/v1/borrowers/:id     - Get borrower details
+PUT    /api/v1/borrowers/:id     - Update borrower
+DELETE /api/v1/borrowers/:id     - Delete borrower
+```
 
 ### Loan Management
-- Loan creation with custom terms
-- EMI calculation
-- Installment schedule generation
-- Loan approval workflow
-- Status tracking (Pending/Active/Completed/Cancelled)
-
-### Collections
-- Payment recording
-- Late fee calculation
-- Payment history
-- Overdue loan tracking
-
-### Dashboard
-- Total collections (Pending/Paid/Interest)
-- Active loans statistics
-- Borrower status breakdown
-- Period-wise analytics
-
-## Known Limitations
-
-- **Response Time**: Free-tier hosting may result in slower initial response times
-- **UI**: Minor UI adjustments pending (handled by deployment team)
-- **Home Icon**: App icon not configured for device home screen
-
-## API Architecture
 ```
-Railway (MySQL) <-> Render (Node.js API) <-> Flutter App
+GET    /api/v1/loans             - List all loans
+POST   /api/v1/loans             - Create loan
+GET    /api/v1/loans/:id         - Get loan details
+PUT    /api/v1/loans/:id         - Update loan
+GET    /api/v1/loans/:id/schedule - Get installment schedule
 ```
 
-## Deployment
+### Payment Collection
+```
+POST   /api/v1/payments          - Record payment
+GET    /api/v1/payments/loan/:id - Get payment history
+```
 
-- Backend deployed on Render (free tier)
-- Database hosted on Railway
-- Flutter app compiled to APK
-- Production deployment managed by Vyugam Solutions
+### Analytics Dashboard
+```
+GET    /api/v1/dashboard/stats   - Get dashboard statistics
+GET    /api/v1/dashboard/analytics?period=daily - Period-wise analytics
+```
 
-## Company
+## 🔐 Security Features
+- JWT access & refresh token mechanism
+- Bcrypt password hashing (configurable rounds)
+- CORS protection
+- Helmet security headers
+- Input validation and sanitization
+- SQL injection prevention
+- Rate limiting (recommended for production)
 
-**Vyugam Solutions**  
-Website: https://vyugamsolutions.com/  
-Role: Mobile Application Development - Backend
+## 🏗️ Architecture
+```
+Client (Flutter App)
+    ↓
+Express.js API Server (Render)
+    ↓
+MySQL Database (Railway)
+```
 
-## Notes
+## 📊 Database Schema
+Key tables:
+- `admins` - Admin user management
+- `borrowers` - Borrower information
+- `loans` - Loan details and status
+- `installments` - EMI schedule
+- `payments` - Payment transactions
 
-- This project is accepted for deployment by Vyugam Solutions
-- Company will host on their own servers and handle minor fixes
-- Currently running on free-tier services for demonstration
-- Production-ready codebase with error handling and security best practices
+## 🚀 Deployment
 
-## Repository
+### Render (Current Demo)
+```bash
+# Build command
+npm install
 
-Backend: https://github.com/seshathri044/loan-management-backend
+# Start command
+npm start
+```
+
+### Production Deployment Checklist
+- [ ] Set NODE_ENV=production
+- [ ] Configure production database
+- [ ] Set strong JWT secrets
+- [ ] Configure CORS for specific domain
+- [ ] Enable SSL/TLS
+- [ ] Set up monitoring and logging
+- [ ] Configure backup strategy
+- [ ] Implement rate limiting
+- [ ] Set up CDN (if needed)
+
+## 🧪 Testing
+```bash
+# Run tests (when implemented)
+npm test
+
+# Run linting
+npm run lint
+```
+
+## 📦 Dependencies
+```json
+{
+  "express": "^4.18.x",
+  "mysql2": "^3.x.x",
+  "jsonwebtoken": "^9.x.x",
+  "bcrypt": "^5.x.x",
+  "dotenv": "^16.x.x",
+  "cors": "^2.x.x",
+  "helmet": "^7.x.x",
+  "express-validator": "^7.x.x"
+}
+```
+
+## 🤝 Integration
+This backend is designed to work with:
+- **Frontend**: Flutter mobile application
+- **Platform**: Android & iOS
+- **Frontend Repository**: (Link if public)
+
+## 📝 Development Notes
+- Free-tier hosting may experience cold starts (10-30s initial response)
+- Production deployment will use dedicated infrastructure
+- API versioning implemented for future compatibility
+- Modular architecture for easy feature additions
+
+## 🏢 Project Status
+- **Status**: Production-ready
+- **Client**: Vyugam Solutions
+- **Purpose**: Portfolio demonstration & client handoff
+- **License**: Proprietary
+
+## 🔗 Links
+- **Live API**: https://loan-management-backend-h2d1.onrender.com
+- **Company**: [Vyugam Solutions](https://vyugamsolutions.com/)
+- **APK Release**: [Download v1.0.0](https://github.com/seshathri044/loan-management-backend/releases/tag/v1.0.0)
+
+## 📧 Contact
+For inquiries regarding this project, please contact through [Vyugam Solutions](https://vyugamsolutions.com/).
 
 ---
 
-**Status**: Deployed | Mobile Ready | Secure
+**⚠️ Disclaimer**: This is a demonstration deployment. The live API uses non-sensitive test data. Production deployment will be handled by the client with appropriate security measures and infrastructure.
